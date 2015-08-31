@@ -23,6 +23,7 @@ class FrmEntryMeta {
             'created_at'    => current_time('mysql', 1),
         );
 
+		$new_values = self::prepare_values( $new_values );
         $new_values = apply_filters('frm_add_entry_meta', $new_values);
 
         $query_results = $wpdb->insert( $wpdb->prefix .'frm_item_metas', $new_values );
@@ -49,7 +50,10 @@ class FrmEntryMeta {
 
         $values = $where_values = array( 'item_id' => $entry_id, 'field_id' => $field_id );
         $values['meta_value'] = $meta_value;
+
+		$values = self::prepare_values( $values );
         $values = apply_filters('frm_update_entry_meta', $values);
+
 		if ( is_array($values['meta_value']) ) {
 			$values['meta_value'] = array_filter( $values['meta_value'], 'FrmAppHelper::is_not_empty_value' );
 		}
@@ -60,6 +64,21 @@ class FrmEntryMeta {
 
         return $wpdb->update( $wpdb->prefix .'frm_item_metas', array( 'meta_value' => $meta_value ), $where_values );
     }
+
+	public static function prepare_values( $values ) {
+		$field = FrmField::getOne( $values['field_id'] );
+		if ( ! $field ) {
+			return $values;
+		}
+
+		if ( $field->type == 'date' ) {
+			$values['meta_value'] = FrmProAppHelper::maybe_convert_to_db_date( $values['meta_value'], 'Y-m-d' );
+		} else if ( $field->type == 'number' && ! is_numeric( $values['meta_value'] ) ) {
+			$values['meta_value'] = (float) $values['meta_value'];
+		}
+
+		return $values;
+	}
 
 	public static function update_entry_metas( $entry_id, $values ) {
         global $wpdb;

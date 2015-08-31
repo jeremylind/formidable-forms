@@ -46,14 +46,14 @@ class FrmFieldsHelper {
             $values['options'] = serialize( array(
                 '', __( 'Option 1', 'formidable' ),
             ) );
-        } else if ( $type == 'textarea' ) {
-            $values['field_options']['max'] = '5';
         } else if ( $type == 'captcha' ) {
             $frm_settings = FrmAppHelper::get_settings();
             $values['invalid'] = $frm_settings->re_msg;
         } else if ( 'url' == $type ) {
             $values['name'] = __( 'Website', 'formidable' );
-        }
+		} else if ( 'user_id' == $type ) {
+			$values['name'] = __( 'User ID', 'formidable' );
+		}
 
 		$fields = FrmField::field_selection();
         $fields = array_merge($fields, FrmField::pro_field_selection());
@@ -124,6 +124,18 @@ class FrmFieldsHelper {
             'clear_on_focus' => 0, 'default_blank' => 0, 'classes' => '',
 			'custom_html' => '',
         );
+
+		$type_defaults = array(
+			'number' => array( 'maxnum' => 9999999, 'step' => '.01', 'minnum' => 0 ),
+			'date'   => array( 'max'   => '10' ),
+			'time'   => array( 'step'  => 30 ),
+			'phone'  => array( 'size'  => '115px' ),
+			'textarea' => array( 'max' => 5 ),
+		);
+
+		if ( isset( $type_defaults[ $type ] ) ) {
+			$field_options = array_merge( $field_options, $type_defaults[ $type ] );
+		}
 
 		if ( $limit ) {
             return $field_options;

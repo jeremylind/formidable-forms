@@ -526,6 +526,12 @@ class FrmFieldsController {
                 $display['size'] = true;
                 $display['clear_on_focus'] = true;
                 $display['invalid'] = true;
+			break;
+			case 'number':
+				$frm_settings = FrmAppHelper::get_settings();
+				if ( $frm_settings->use_html ) {
+					$display['max']  = false;
+				}
         }
 
         return $display;
@@ -539,6 +545,7 @@ class FrmFieldsController {
         self::add_html_size($field, $add_html);
         self::add_html_length($field, $add_html);
         self::add_html_placeholder($field, $add_html, $class);
+		self::add_html5_options( $field, $add_html );
 
         $class = apply_filters('frm_field_classes', implode(' ', $class), $field);
 
@@ -662,6 +669,39 @@ class FrmFieldsController {
             }
         }
     }
+
+	private static function add_html5_options( $field, array &$add_html ) {
+		if ( FrmAppHelper::is_admin_page( 'formidable' ) ) {
+			return;
+		}
+
+		$frm_settings = FrmAppHelper::get_settings();
+
+		if ( $frm_settings->use_html ) {
+			global $frm_vars;
+
+			if ( $field['type'] == 'number' || $field['type'] == 'range' ) {
+
+				if ( ! is_numeric( $field['minnum'] ) ) {
+					$field['minnum'] = 0;
+				}
+				if ( ! is_numeric( $field['maxnum'] ) ) {
+					$field['maxnum'] = 9999999;
+				}
+				if ( ! is_numeric( $field['step'] ) ) {
+					$field['step'] = 1;
+				}
+
+				$add_html .= ' min="' . esc_attr( $field['minnum'] ) . '" max="' . esc_attr( $field['maxnum'] ) . '" step="' . esc_attr( $field['step'] ) . '"';
+
+			} else if ( in_array( $field['type'], array( 'url', 'email', 'image' ) ) ) {
+				if ( ( ! isset( $frm_vars['novalidate'] ) || ! $frm_vars['novalidate'] ) && ( $field['type'] != 'email' || ( isset( $field['value'] ) && $field['default_value'] == $field['value'] ) ) ) {
+					// add novalidate for drafts
+					$frm_vars['novalidate'] = true;
+				}
+			}
+		}
+	}
 
     private static function add_shortcodes_to_html( $field, array &$add_html ) {
         if ( FrmField::is_option_empty( $field, 'shortcodes' ) ) {

@@ -16,6 +16,14 @@ class FrmField {
 			'select'    => __( 'Dropdown', 'formidable' ),
 			'email'     => __( 'Email Address', 'formidable' ),
 			'url'       => __( 'Website/URL', 'formidable' ),
+			'number'    => __( 'Number', 'formidable' ),
+			'phone'     => __( 'Phone Number', 'formidable' ),
+			'date'      => __( 'Date', 'formidable' ),
+			'time'      => __( 'Time', 'formidable' ),
+			'hidden'    => __( 'Hidden Field', 'formidable' ),
+			'user_id'   => __( 'User ID (hidden)', 'formidable' ),
+			'password'  => __( 'Password', 'formidable' ),
+			'html'      => __( 'HTML', 'formidable' ),
 			'captcha'   => __( 'reCAPTCHA', 'formidable' ),
 		));
 
@@ -32,23 +40,11 @@ class FrmField {
 			'break'     => __( 'Page Break', 'formidable' ),
 			'file'      => __( 'File Upload', 'formidable' ),
 			'rte'       => __( 'Rich Text', 'formidable' ),
-			'number'    => __( 'Number', 'formidable' ),
-			'phone'     => __( 'Phone Number', 'formidable' ),
-			'date'      => __( 'Date', 'formidable' ),
-			'time'      => __( 'Time', 'formidable' ),
 			'image'     => __( 'Image URL', 'formidable' ),
 			'scale'     => __( 'Scale', 'formidable' ),
 			'data'      => __( 'Dynamic Field', 'formidable' ),
 			'form'      => __( 'Embed Form', 'formidable' ),
-			'hidden'    => __( 'Hidden Field', 'formidable' ),
-			'user_id'   => __( 'User ID (hidden)', 'formidable' ),
-			'password'  => __( 'Password', 'formidable' ),
-			'html'      => __( 'HTML', 'formidable' ),
 			'tag'       => __( 'Tags', 'formidable' ),
-			//'address' => 'Address' //Address line 1, Address line 2, City, State/Providence, Postal Code, Select Country
-			//'city_selector' => 'US State/County/City selector',
-			//'full_name' => 'First and Last Name',
-			//'quiz'    => 'Question and Answer' // for captcha alternative
 		));
 	}
 

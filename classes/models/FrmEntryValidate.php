@@ -82,8 +82,11 @@ class FrmEntryValidate {
             $_POST['item_name'] = $value;
         }
 
-        self::validate_url_field($errors, $posted_field, $value, $args);
-        self::validate_email_field($errors, $posted_field, $value, $args);
+		$validate_fields = array( 'url', 'email', 'number', 'phone', 'date' );
+		if ( in_array( $posted_field->type, $validate_fields ) ) {
+			$function = 'validate_' . $posted_field->type . '_field';
+			self::$function( $errors, $posted_field, $value, $args );
+		}
 
         FrmEntriesHelper::set_posted_value($posted_field, $value, $args);
 
@@ -111,15 +114,90 @@ class FrmEntryValidate {
     }
 
 	public static function validate_email_field( &$errors, $field, $value, $args ) {
-        if ( $value == '' || $field->type != 'email' ) {
-            return;
-        }
+		if ( $value == '' || $field->type != 'email' ) {
+			return;
+		}
 
-        //validate the email format
-        if ( ! is_email($value) ) {
+		//validate the email format
+		if ( ! is_email( $value ) ) {
 			$errors[ 'field' . $args['id'] ] = FrmFieldsHelper::get_error_msg( $field, 'invalid' );
-        }
-    }
+		}
+	}
+
+	public static function validate_number_field( &$errors, $field, $value ) {
+		//validate the number format
+		if ( $field->type != 'number' ) {
+			return;
+		}
+
+		if ( ! is_numeric( $value ) ) {
+			$errors[ 'field' . $field->temp_id ] = FrmFieldsHelper::get_error_msg( $field, 'invalid' );
+		}
+
+		// validate number settings
+		if ( $value != '' ) {
+			$frm_settings = FrmAppHelper::get_settings();
+			// only check if options are available in settings
+			if ( $frm_settings->use_html && isset($field->field_options['minnum']) && isset($field->field_options['maxnum']) ) {
+				//minnum maxnum
+				if ( (float) $value < $field->field_options['minnum'] ) {
+					$errors['field'. $field->temp_id] = __( 'Please select a higher number', 'formidable' );
+				} else if ( (float) $value > $field->field_options['maxnum'] ) {
+					$errors['field'. $field->temp_id] = __( 'Please select a lower number', 'formidable' );
+				}
+			}
+		}
+	}
+
+	public static function validate_phone_field( &$errors, $field, $value ) {
+		if ( $field->type != 'phone' ) {
+			return;
+		}
+
+		$default_format = '^((\+\d{1,3}(-|.| )?\(?\d\)?(-| |.)?\d{1,5})|(\(?\d{2,6}\)?))(-|.| )?(\d{3,4})(-|.| )?(\d{4})(( x| ext)\d{1,5}){0,1}$';
+		$pattern = ( ! FrmField::is_option_empty( $field, 'format' ) ) ? $field->field_options['format'] : $default_format;
+		$pattern = apply_filters('frm_phone_pattern', $pattern, $field);
+
+		//check if format is already a regular expression
+		if ( strpos($pattern, '^') !== 0 ) {
+			//if not, create a regular expression
+			$pattern = preg_replace('/\d/', '\d', preg_quote($pattern));
+			$pattern = str_replace('a', '[a-z]', $pattern);
+			$pattern = str_replace('A', '[A-Z]', $pattern);
+			$pattern = str_replace('/', '\/', $pattern);
+			$pattern = '/^'. $pattern .'$/';
+		} else {
+			$pattern = '/'. $pattern .'/';
+		}
+
+		if ( ! preg_match($pattern, $value) ) {
+			$errors['field'. $field->temp_id] = FrmFieldsHelper::get_error_msg($field, 'invalid');
+		}
+	}
+
+	public static function validate_date_field(&$errors, $field, $value) {
+		if ( $field->type != 'date' ) {
+			return;
+		}
+
+		if ( ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ) {
+			$frmpro_settings = new FrmProSettings();
+			$formated_date = FrmProAppHelper::convert_date($value, $frmpro_settings->date_format, 'Y-m-d');
+
+			//check format before converting
+			if ( $value != date($frmpro_settings->date_format, strtotime($formated_date)) ) {
+				$errors['field'. $field->temp_id] = FrmFieldsHelper::get_error_msg($field, 'invalid');
+			}
+
+			$value = $formated_date;
+			unset($formated_date);
+		}
+		$date = explode('-', $value);
+
+		if ( count($date) != 3 || ! checkdate( (int) $date[1], (int) $date[2], (int) $date[0]) ) {
+			$errors['field'. $field->temp_id] = FrmFieldsHelper::get_error_msg($field, 'invalid');
+		}
+	}
 
 	public static function validate_recaptcha( &$errors, $field, $args ) {
         if ( $field->type != 'captcha' || FrmAppHelper::is_admin() ) {

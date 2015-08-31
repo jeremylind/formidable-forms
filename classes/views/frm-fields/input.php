@@ -159,6 +159,16 @@ do_action('frm_field_input_html', $field);
     if ( ! empty($frm_settings->pubkey) ) {
         FrmFieldsHelper::display_recaptcha($field);
     }
+} else if ( in_array($field['type'], array( 'number', 'password', 'range' ) ) ) {
+?>
+<input type="<?php echo ( $frm_settings->use_html || $field['type'] == 'password' ) ? esc_attr( $field['type'] ) : 'text'; ?>" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
+<?php
+} else if ( $field['type'] == 'phone' ) {
+    $field['type'] = 'tel';
+?>
+<input type="<?php echo ( $frm_settings->use_html ) ? esc_attr( $field['type'] ) : 'text'; ?>" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
+<?php
+    $field['type'] = 'phone';
 } else {
     do_action('frm_form_fields', $field, $field_name, compact('errors', 'html_id'));
 }

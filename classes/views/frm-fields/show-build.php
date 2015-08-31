@@ -6,7 +6,20 @@
     ?> rows="<?php echo esc_attr( $field['max'] ); ?>" id="<?php echo esc_attr( $html_id ) ?>" class="dyn_default_value"><?php echo FrmAppHelper::esc_textarea(force_balance_tags($field['default_value'])); ?></textarea>
 
 <?php
-
+} else if ( in_array( $field['type'], array( 'phone', 'tag', 'date', 'number', 'password' ) ) ) { ?>
+    <input type="text" name="<?php echo esc_attr( $field_name ) ?>" id="<?php echo esc_attr( $html_id ) ?>" value="<?php echo esc_attr( $field['default_value'] ); ?>" <?php do_action( 'frm_field_input_html', $field ) ?> />
+<?php } else if ( $field['type'] == 'hidden' ) { ?>
+    <input type="text" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['default_value'] ); ?>" class="dyn_default_value" />
+    <p class="howto frm_clear"><?php _e( 'Note: This field will not show in the form. Enter the value to be hidden.', 'formidable' ) ?></p>
+<?php } else if ( $field['type'] == 'time' ) { ?>
+<select name="<?php echo $field_name ?>" id="<?php echo $html_id ?>" <?php do_action('frm_field_input_html', $field) ?>>
+    <option value=""><?php echo $field['start_time'] ?></option>
+    <option value="">...</option>
+    <option value=""><?php echo $field['end_time'] ?></option>
+</select>
+<?php } else if ( $field['type'] == 'user_id' ) { ?>
+    <p class="howto frm_clear"><?php _e( 'Note: This field will not show in the form, but will link the user id to it as long as the user is logged in at the time of form submission.', 'formidable' ) ?></p>
+<?php
 } else if ( $field['type'] == 'radio' || $field['type'] == 'checkbox' ) {
     $field['default_value'] = maybe_unserialize($field['default_value']);
     if ( isset($field['post_field']) && $field['post_field'] == 'post_category' ) {
