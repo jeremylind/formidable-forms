@@ -77,6 +77,7 @@ class FrmEntriesHelper {
                 $field_array['custom_html'] = FrmFieldsHelper::get_default_html($field->type);
             }
 
+			$field_array = self::prepare_entry_fields( $field_array, $field );
             $field_array = apply_filters('frm_setup_new_fields_vars', $field_array, $field);
             $field_array = array_merge( $field->field_options, $field_array );
 
@@ -111,6 +112,24 @@ class FrmEntriesHelper {
         $values['is_draft'] = $record->is_draft;
         return apply_filters('frm_setup_edit_entry_vars', $values, $record);
     }
+
+	public static function prepare_entry_fields( $values, $field ) {
+		if ( $values['type'] == 'date' ) {
+			$values['value'] = FrmAppHelper::maybe_convert_from_db_date( $values['value'], 'Y-m-d' );
+		} else if ( $values['type'] == 'time' ) {
+			$values['options'] = FrmFieldOptions::get_time_options( $values );
+		} else if ( $values['type'] == 'user_id' && FrmAppHelper::is_admin() && current_user_can( 'frm_edit_entries' ) && ! FrmAppHelper::is_admin_page('formidable' ) ) {
+			if ( FrmProFieldsHelper::field_on_current_page( $field ) ) {
+				$user_ID = get_current_user_id();
+				$values['type'] = 'select';
+				$values['options'] = self::get_user_options();
+				$values['use_key'] = true;
+				$values['custom_html'] = FrmFieldsHelper::get_default_html('select');
+				$values['value'] = ( $_POST && isset($_POST['item_meta'][ $field->id ] ) ) ? $_POST['item_meta'][ $field->id ] : $user_ID;
+			}
+		}
+		return $values;
+	}
 
     public static function get_admin_params( $form = null ) {
 		_deprecated_function( __FUNCTION__, '2.0.9', 'FrmForm::get_admin_params' );

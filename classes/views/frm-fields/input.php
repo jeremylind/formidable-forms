@@ -163,12 +163,94 @@ do_action('frm_field_input_html', $field);
 ?>
 <input type="<?php echo ( $frm_settings->use_html || $field['type'] == 'password' ) ? esc_attr( $field['type'] ) : 'text'; ?>" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
 <?php
+
 } else if ( $field['type'] == 'phone' ) {
+
     $field['type'] = 'tel';
 ?>
 <input type="<?php echo ( $frm_settings->use_html ) ? esc_attr( $field['type'] ) : 'text'; ?>" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
 <?php
     $field['type'] = 'phone';
+
+} else if ( 'date' == $field['type'] ) {
+
+?>
+<input type="text" id="<?php echo esc_attr( $html_id ) ?>" name="<?php echo esc_attr( $field_name ) ?>" value="<?php echo esc_attr( $field['value'] ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>/>
+<?php
+
+	if ( ! FrmField::is_read_only( $field ) ) {
+		if ( ! isset( $frm_vars['datepicker_loaded'] ) || ! is_array( $frm_vars['datepicker_loaded'] ) ) {
+			$frm_vars['datepicker_loaded'] = array();
+		}
+
+		if ( ! isset( $frm_vars['datepicker_loaded'][ $html_id ] ) ) {
+			$static_html_id = FrmFieldsHelper::get_html_id( $field );
+			if ( $html_id != $static_html_id ) {
+				// user wildcard for repeating fields
+				$frm_vars['datepicker_loaded'][ '^' . $static_html_id ] = true;
+			} else {
+				$frm_vars['datepicker_loaded'][ $html_id ] = true;
+			}
+		}
+
+		FrmProFieldsHelper::set_field_js( $field, ( isset( $entry_id ) ? $entry_id : 0 ) );
+	}
+
+} else if ( $field['type'] == 'time' ) {
+
+	if ( $field['unique'] ) {
+		if ( ! isset( $frm_vars['timepicker_loaded'] ) || ! is_array( $frm_vars['timepicker_loaded'] ) ) {
+			$frm_vars['timepicker_loaded'] = array();
+		}
+
+		if ( ! isset( $frm_vars['timepicker_loaded'][ $html_id ] ) ) {
+			$frm_vars['timepicker_loaded'][ $html_id ] = true;
+		}
+	}
+
+	if ( isset( $field['options']['H'] ) ) {
+		if ( ! empty( $field['value'] ) && ! is_array( $field['value'] ) ) {
+			$h = explode( ':', $field['value'] );
+			$m = explode( ' ', $h[1]);
+			$h = reset( $h );
+			$a = isset( $m[1] ) ? $m[1] : '';
+			$m = reset( $m );
+		} else if ( is_array( $field['value'] ) ) {
+			$h = isset($field['value']['H']) ? $field['value']['H'] : '';
+			$m = isset($field['value']['m']) ? $field['value']['m'] : '';
+			$a = isset($field['value']['A']) ? $field['value']['A'] : '';
+		} else {
+			$h = $m = $a = '';
+		}
+		?>
+		<select name="<?php echo esc_attr( $field_name ) ?>[H]" id="<?php echo esc_attr( $html_id ) ?>_H" <?php do_action( 'frm_field_input_html', $field ) ?>>
+			<?php foreach ( $field['options']['H'] as $hour ) { ?>
+				<option value="<?php echo esc_attr( $hour ) ?>" <?php selected( $h, $hour ) ?>><?php echo $hour ?></option>
+			<?php } ?>
+		</select> :
+		<select name="<?php echo esc_attr( $field_name ) ?>[m]" id="<?php echo esc_attr( $html_id ) ?>_m" <?php do_action( 'frm_field_input_html', $field ) ?>>
+			<?php foreach ( $field['options']['m'] as $min ) { ?>
+				<option value="<?php echo esc_attr( $min ) ?>" <?php selected( $m, $min ) ?>><?php echo $min ?></option>
+			<?php } ?>
+		</select>
+		<?php
+		if ( isset( $field['options']['A'] ) ) { ?>
+			<select name="<?php echo esc_attr( $field_name ) ?>[A]" id="<?php echo esc_attr( $html_id ) ?>_A" <?php do_action( 'frm_field_input_html', $field ) ?>>
+				<?php foreach ( $field['options']['A'] as $am ) { ?>
+					<option value="<?php echo esc_attr( $am ) ?>" <?php selected( $a, $am ) ?>><?php echo $am ?></option>
+				<?php } ?>
+			</select>
+		<?php
+		}
+	} else {
+	?>
+	<select name="<?php echo esc_attr( $field_name ) ?>" id="<?php echo esc_attr( $html_id ) ?>" <?php do_action( 'frm_field_input_html', $field ) ?>>
+	    <?php foreach ( $field['options'] as $t ) { ?>
+	        <option value="<?php echo esc_attr( $t ) ?>" <?php selected( $field['value'], $t ) ?>><?php echo esc_html( $t ) ?></option>
+	    <?php } ?>
+	</select>
+	<?php
+	}
 } else {
     do_action('frm_form_fields', $field, $field_name, compact('errors', 'html_id'));
 }

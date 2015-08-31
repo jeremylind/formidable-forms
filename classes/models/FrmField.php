@@ -21,7 +21,7 @@ class FrmField {
 			'date'      => __( 'Date', 'formidable' ),
 			'time'      => __( 'Time', 'formidable' ),
 			'hidden'    => __( 'Hidden Field', 'formidable' ),
-			'user_id'   => __( 'User ID (hidden)', 'formidable' ),
+			//'user_id'   => __( 'User ID (hidden)', 'formidable' ),
 			'password'  => __( 'Password', 'formidable' ),
 			'html'      => __( 'HTML', 'formidable' ),
 			'captcha'   => __( 'reCAPTCHA', 'formidable' ),
@@ -32,6 +32,8 @@ class FrmField {
 
 	public static function pro_field_selection() {
 		return apply_filters('frm_pro_available_fields', array(
+			'user_id'   => __( 'User ID (hidden)', 'formidable' ),
+
 			'end_divider' => array(
 				'name'  => __( 'End Section', 'formidable' ),
 				'switch_from' => 'divider',
@@ -679,4 +681,102 @@ class FrmField {
         $id = FrmDb::get_var( 'frm_fields', array( 'field_key' => sanitize_title( $key ) ) );
         return $id;
     }
+
+	public static function get_time_options( $values ) {
+		if ( empty( $values['start_time'] ) ) {
+			$values['start_time'] = '00:00';
+		}
+
+		if ( empty( $values['end_time'] ) ) {
+			$values['end_time'] = '23:59';
+		}
+
+		$time = strtotime( $values['start_time'] );
+		$end_time = strtotime( $values['end_time'] );
+		$step = explode( ':', $values['step']);
+		$step = ( isset( $step[1] ) ) ? ( $step[0] * 3600 + $step[1] * 60 ) : ( $step[0] * 60 );
+		if ( empty( $step ) ) {
+			// force an hour step if none was defined to prevent infinite loop
+			$step = 60;
+		}
+		$format = ( $values['clock'] == 24 ) ? 'H:i' : 'h:i A';
+
+		$options = array( '');
+		while ( $time <= $end_time ) {
+			$options[] = date( $format, $time );
+			$time += $step;
+		}
+
+		return $options;
+	}
+
+	/**
+	* Show time parts in separate dropdowns
+	*/
+	public static function get_time_dropdown_options( $values ) {
+		$step = $values['step'];
+		$hour_step = floor( $step / 60 );
+		if ( ! $hour_step ) {
+			$hour_step = 1;
+		}
+		$start_time = $values['start_time'];
+		$end_time = $values['end_time'];
+		$show24Hours = ( isset( $values['clock'] ) && $values['clock'] == 24 );
+		$separator = ':';
+
+		$start = explode( $separator, $start_time );
+		$end = explode( $separator, $end_time );
+
+		if ( $end[0] < $start[0] ) {
+			$end[0] += 12;
+		}
+
+		$options = array();
+		$options['H'] = range( $start[0], $end[0], $hour_step );
+		foreach ( $options['H'] as $k => $h ) {
+			if ( ! $show24Hours && $h > 12 ) {
+				$options['H'][$k] = $h - 12;
+			}
+
+			if ( ! $options['H'][ $k ]){
+				unset( $options['H'][ $k ] ); //remove 0
+				continue;
+			}
+
+			if($options['H'][$k] < 10)
+				$options['H'][$k] = '0'. $options['H'][ $k ];
+
+			unset( $k, $h );
+		}
+
+		$options['H'] = array_unique( $options['H'] );
+		sort( $options['H'] );
+		array_unshift( $options['H'], '' );
+
+		if ( $step > 60 ) {
+			if ( $step %60 == 0 ) {
+				//the step is an even hour
+				$step = 60;
+			} else {
+				//get the number of minutes
+				$step = $step - ( $hour_step * 60 );
+			}
+		}
+
+		$options['m'] = range( $start[1], 59, $step );
+		foreach ( $options['m'] as $k => $m ) {
+			if ( $m < 10 ) {
+				$options['m'][$k] = '0'. $m;
+			}
+			unset( $k, $m );
+		}
+
+		array_unshift( $options['m'], '' );
+
+		if ( ! $show24Hours ) {
+			$options['A'] = array( '', 'AM', 'PM' );
+		}
+
+		return $options;
+	}
 }

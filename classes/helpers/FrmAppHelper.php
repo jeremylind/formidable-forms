@@ -1182,6 +1182,87 @@ class FrmAppHelper {
 		return call_user_func_array( $function_name, $args );
 	}
 
+	/**
+	 * @since 2.01
+	 */
+	public static function display_to_datepicker_format() {
+		$formats = array(
+			'm/d/Y' => 'mm/dd/yy',
+			'Y/m/d' => 'yy/mm/dd',
+			'd/m/Y' => 'dd/mm/yy',
+			'd.m.Y' => 'dd.mm.yy',
+			'j/m/y' => 'd/mm/y',
+			'j/n/y' => 'd/m/y',
+			'Y-m-d' => 'yy-mm-dd',
+			'j-m-Y' => 'd-mm-yy',
+		);
+		$formats = apply_filters( 'frm_datepicker_formats', $formats );
+		return $formats;
+	}
+
+	/**
+	 * @since 2.01
+	 */
+	public static function maybe_convert_to_db_date( $date_str, $to_format = 'Y-m-d' ) {
+		$date_str = trim( $date_str );
+		$in_db_format = preg_match( '/^\d{4}-\d{2}-\d{2}/', $date_str );
+
+		if ( ! $in_db_format ) {
+			$date_str = self::convert_date( $date_str, 'db', $to_format );
+		}
+
+		return $date_str;
+	}
+
+	/**
+	 * @since 2.01
+	 */
+	public static function maybe_convert_from_db_date( $date_str, $from_format = 'Y-m-d' ) {
+		$date_str = trim( $date_str );
+		$in_db_format = preg_match( '/^\d{4}-\d{2}-\d{2}/', $date_str );
+
+		if ( $in_db_format ) {
+			$date_str = self::convert_date( $date_str, $from_format, 'db' );
+		}
+
+		return $date_str;
+	}
+
+	/**
+	 * @since 2.01
+	 */
+	public static function convert_date( $date_str, $from_format, $to_format ) {
+		if ( 'db' == $to_format ) {
+			$frmpro_settings = self::get_settings();
+			$to_format = $frmpro_settings->date_format;
+		} else if ( 'db' == $from_format ) {
+			$frmpro_settings = self::get_settings();
+			$from_format = $frmpro_settings->date_format;
+		}
+
+		$base_struc     = preg_split("/[\/|.| |-]/", $from_format);
+		$date_str_parts = preg_split("/[\/|.| |-]/", $date_str );
+
+		$date_elements = array();
+
+		$p_keys = array_keys( $base_struc );
+		foreach ( $p_keys as $p_key ) {
+			if ( ! empty( $date_str_parts[ $p_key ] ) ) {
+				$date_elements[ $base_struc[ $p_key ] ] = $date_str_parts[ $p_key ];
+			} else {
+				return false;
+			}
+		}
+
+		if ( is_numeric( $date_elements['m'] ) ) {
+			$dummy_ts = mktime( 0, 0, 0, $date_elements['m'], ( isset( $date_elements['j'] ) ? $date_elements['j'] : $date_elements['d'] ), ( isset( $date_elements['Y'] ) ? $date_elements['Y'] : $date_elements['y'] ) );
+		} else {
+			$dummy_ts = strtotime($date_str);
+		}
+
+		return date( $to_format, $dummy_ts );
+	}
+
 	public static function get_formatted_time( $date, $date_format = '', $time_format = '' ) {
         if ( empty($date) ) {
             return $date;
@@ -1191,9 +1272,9 @@ class FrmAppHelper {
             $date_format = get_option('date_format');
         }
 
-        if ( preg_match('/^\d{1-2}\/\d{1-2}\/\d{4}$/', $date) && self::pro_is_installed() ) {
+        if ( preg_match( '/^\d{1-2}\/\d{1-2}\/\d{4}$/', $date ) ) {
             $frmpro_settings = new FrmProSettings();
-            $date = FrmProAppHelper::convert_date($date, $frmpro_settings->date_format, 'Y-m-d');
+            $date = self::convert_date( $date, $frmpro_settings->date_format, 'Y-m-d' );
         }
 
 		$formatted = self::get_localized_date( $date_format, $date );

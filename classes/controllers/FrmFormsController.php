@@ -281,7 +281,6 @@ class FrmFormsController {
 	public static function register_pro_scripts() {
 		if ( FrmAppHelper::pro_is_installed() ) {
 			wp_register_script( 'jquery-frm-rating', FrmAppHelper::plugin_url() . '/pro/js/jquery.rating.min.js', array( 'jquery' ), '4.11', true );
-			wp_register_script( 'jquery-maskedinput', FrmAppHelper::plugin_url() . '/pro/js/jquery.maskedinput.min.js', array( 'jquery' ), '1.4', true );
 			wp_register_script( 'jquery-chosen', FrmAppHelper::plugin_url() .'/pro/js/chosen.jquery.min.js', array( 'jquery' ), '1.2.0', true );
 		}
 	}
@@ -1170,6 +1169,7 @@ class FrmFormsController {
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 		wp_register_script( 'formidable', FrmAppHelper::plugin_url() . "/js/formidable{$suffix}.js", array( 'jquery' ), $version, true );
 		wp_register_script( 'jquery-placeholder', FrmAppHelper::plugin_url() . '/js/jquery/jquery.placeholder.js', array( 'jquery' ), '2.0.7', true );
+		wp_register_script( 'jquery-maskedinput', FrmAppHelper::plugin_url() . '/js/jquery.maskedinput.min.js', array( 'jquery' ), '1.4', true );
 
 		if ( FrmAppHelper::is_admin() ) {
 			// don't load this in back-end

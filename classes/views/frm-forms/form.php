@@ -54,10 +54,7 @@ if ( isset($values['fields']) && ! empty($values['fields']) ) {
     $count = 0;
     foreach ( $values['fields'] as $field ) {
         $count++;
-        $field_name = 'item_meta['. $field['id'] .']';
-        $html_id = FrmFieldsHelper::get_html_id($field);
-        require(FrmAppHelper::plugin_path() .'/classes/views/frm-forms/add_field.php');
-        unset($field, $field_name);
+		FrmFieldsController::show_single_field( compact( 'field', 'values', 'count' ) );
     }
     unset($count);
 } ?>

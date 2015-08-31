@@ -65,7 +65,7 @@ spl_autoload_register('frm_forms_autoloader');
 
 $frm_path = dirname(__FILE__);
 if ( file_exists($frm_path . '/pro/formidable-pro.php') ) {
-    include($frm_path .'/pro/formidable-pro.php');
+    //include($frm_path .'/pro/formidable-pro.php');
 }
 
 FrmHooksController::trigger_load_hook();

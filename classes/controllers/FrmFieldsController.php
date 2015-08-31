@@ -15,7 +15,6 @@ class FrmFieldsController {
 
         $ajax = true;
 		$values = array( 'id' => FrmAppHelper::get_post_param( 'form_id', '', 'absint' ) );
-        $path = FrmAppHelper::plugin_path();
         $field_html = array();
 
         foreach ( $fields as $field ) {
@@ -26,17 +25,8 @@ class FrmFieldsController {
                 continue;
             }
 
-            $field_id = absint( $field['id'] );
-
-            if ( ! isset( $field['value'] ) ) {
-                $field['value'] = '';
-            }
-
-            $field_name = 'item_meta['. $field_id .']';
-            $html_id = FrmFieldsHelper::get_html_id($field);
-
             ob_start();
-            include($path .'/classes/views/frm-forms/add_field.php');
+            self::show_single_field( compact( 'field', 'values', 'ajax' ) );
             $field_html[ $field_id ] = ob_get_contents();
             ob_end_clean();
         }
@@ -194,18 +184,75 @@ class FrmFieldsController {
      * Load a single field in the form builder along with all needed variables
      */
     public static function include_single_field( $field_id, $values, $form_id = 0 ) {
-        $field = FrmFieldsHelper::setup_edit_vars(FrmField::getOne($field_id));
-        $field_name = 'item_meta['. $field_id .']';
-        $html_id = FrmFieldsHelper::get_html_id($field);
-        $id = $form_id ? $form_id : $field['form_id'];
+		$field = FrmFieldsHelper::setup_edit_vars( FrmField::getOne( $field_id ) );
         if ( $field['type'] == 'html' ) {
             $field['stop_filter'] = true;
         }
 
-        require(FrmAppHelper::plugin_path() .'/classes/views/frm-forms/add_field.php');
+		$id = $form_id;
+		self::show_single_field( compact( 'field', 'values', 'id' ) );
 
         return $field;
     }
+
+
+	public static function show_single_field( $atts ) {
+		$field = $atts['field'];
+		$values = $atts['values'];
+		$id = isset( $atts['id'] ) ? $atts['id'] : 0;
+		$ajax = isset( $atts['ajax'] ) ? $atts['ajax'] : false;
+
+		$id = $id ? $id : $field['form_id'];
+		$field_id = absint( $field['id'] );
+
+		if ( ! isset( $field['value'] ) ) {
+			$field['value'] = '';
+		}
+
+		$field_name = 'item_meta['. $field_id .']';
+		$html_id = FrmFieldsHelper::get_html_id($field);
+
+		if ( $field['type'] == 'date' ) {
+			$locales = FrmAppHelper::locales('date');
+		}
+
+		$display = apply_filters( 'frm_display_field_options', array(
+			'type' => $field['type'], 'field_data' => $field,
+			'required' => true, 'unique' => false, 'read_only' => false,
+			'description' => true, 'options' => true, 'label_position' => true,
+			'invalid' => false, 'size' => false, 'clear_on_focus' => false,
+			'default_blank' => true, 'css' => true, 'conf_field' => false,
+			'max' => true,
+		) );
+
+		$li_classes = 'form-field edit_form_item frm_field_box frm_top_container frm_not_divider edit_field_type_'. $display['type'];
+		$li_classes = apply_filters('frm_build_field_class', $li_classes, $field );
+
+		if ( isset( $atts['count'] ) && $atts['count'] > 1 && isset( $values['ajax_load'] ) && $values['ajax_load'] && ! in_array( $field['type'], array( 'divider', 'end_divider' ) ) ) {
+			$file_name = 'json_field.php';
+		} else {
+			$file_name = 'add_field.php';
+
+			$frm_settings = FrmAppHelper::get_settings();
+
+			if ( ! isset( $frm_all_field_selection ) ) {
+				if ( isset( $frm_field_selection ) && isset( $pro_field_selection ) ) {
+					$frm_all_field_selection = array_merge( $frm_field_selection, $pro_field_selection );
+				} else {
+					$pro_field_selection = FrmField::pro_field_selection();
+					$frm_all_field_selection = array_merge( FrmField::field_selection(), $pro_field_selection );
+				}
+			}
+
+			$disabled_fields = FrmAppHelper::pro_is_installed() ? array() : $pro_field_selection;
+
+			if ( ! $ajax ) {
+				$li_classes .= ' ui-state-default widgets-holder-wrap';
+			}
+		}
+
+		include( FrmAppHelper::plugin_path() . '/classes/views/frm-fields/' . $file_name );
+	}
 
     public static function destroy() {
         check_ajax_referer( 'frm_ajax', 'nonce' );
@@ -546,6 +593,7 @@ class FrmFieldsController {
         self::add_html_length($field, $add_html);
         self::add_html_placeholder($field, $add_html, $class);
 		self::add_html5_options( $field, $add_html );
+		self::setup_input_masks( $field, $add_html );
 
         $class = apply_filters('frm_field_classes', implode(' ', $class), $field);
 
@@ -692,7 +740,9 @@ class FrmFieldsController {
 					$field['step'] = 1;
 				}
 
-				$add_html .= ' min="' . esc_attr( $field['minnum'] ) . '" max="' . esc_attr( $field['maxnum'] ) . '" step="' . esc_attr( $field['step'] ) . '"';
+				$add_html['min'] = 'min="' . esc_attr( $field['minnum'] ) . '"';
+				$add_html['max'] = 'max="' . esc_attr( $field['maxnum'] ) . '"';
+				$add_html['step'] = 'step="' . esc_attr( $field['step'] ) . '"';
 
 			} else if ( in_array( $field['type'], array( 'url', 'email', 'image' ) ) ) {
 				if ( ( ! isset( $frm_vars['novalidate'] ) || ! $frm_vars['novalidate'] ) && ( $field['type'] != 'email' || ( isset( $field['value'] ) && $field['default_value'] == $field['value'] ) ) ) {
@@ -701,6 +751,16 @@ class FrmFieldsController {
 				}
 			}
 		}
+	}
+
+	public static function setup_input_masks( $field, &$add_html ) {
+		if ( ! isset( $field['format'] ) || empty( $field['format'] ) || strpos( $field['format'], '^' ) === 0 || ( $field['type'] != 'tel' && $field['type'] != 'phone' ) ) {
+			return;
+		}
+
+		global $frm_input_masks;
+		$frm_input_masks[] = true;
+		$add_html['data-frmmask'] = 'data-frmmask="'. esc_attr( preg_replace( '/\d/', '9', $field['format'] ) ) .'"';
 	}
 
     private static function add_shortcodes_to_html( $field, array &$add_html ) {

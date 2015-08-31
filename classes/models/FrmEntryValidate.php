@@ -141,9 +141,9 @@ class FrmEntryValidate {
 			if ( $frm_settings->use_html && isset($field->field_options['minnum']) && isset($field->field_options['maxnum']) ) {
 				//minnum maxnum
 				if ( (float) $value < $field->field_options['minnum'] ) {
-					$errors['field'. $field->temp_id] = __( 'Please select a higher number', 'formidable' );
+					$errors[ 'field' . $field->temp_id ] = __( 'Please select a higher number', 'formidable' );
 				} else if ( (float) $value > $field->field_options['maxnum'] ) {
-					$errors['field'. $field->temp_id] = __( 'Please select a lower number', 'formidable' );
+					$errors[ 'field' . $field->temp_id ] = __( 'Please select a lower number', 'formidable' );
 				}
 			}
 		}
@@ -170,23 +170,23 @@ class FrmEntryValidate {
 			$pattern = '/'. $pattern .'/';
 		}
 
-		if ( ! preg_match($pattern, $value) ) {
-			$errors['field'. $field->temp_id] = FrmFieldsHelper::get_error_msg($field, 'invalid');
+		if ( ! preg_match( $pattern, $value ) ) {
+			$errors[ 'field' . $field->temp_id ] = FrmFieldsHelper::get_error_msg( $field, 'invalid' );
 		}
 	}
 
-	public static function validate_date_field(&$errors, $field, $value) {
+	public static function validate_date_field( &$errors, $field, $value ) {
 		if ( $field->type != 'date' ) {
 			return;
 		}
 
 		if ( ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ) {
 			$frmpro_settings = new FrmProSettings();
-			$formated_date = FrmProAppHelper::convert_date($value, $frmpro_settings->date_format, 'Y-m-d');
+			$formated_date = FrmAppHelper::convert_date($value, $frmpro_settings->date_format, 'Y-m-d');
 
 			//check format before converting
 			if ( $value != date($frmpro_settings->date_format, strtotime($formated_date)) ) {
-				$errors['field'. $field->temp_id] = FrmFieldsHelper::get_error_msg($field, 'invalid');
+				$errors[ 'field' . $field->temp_id ] = FrmFieldsHelper::get_error_msg( $field, 'invalid' );
 			}
 
 			$value = $formated_date;
@@ -195,7 +195,7 @@ class FrmEntryValidate {
 		$date = explode('-', $value);
 
 		if ( count($date) != 3 || ! checkdate( (int) $date[1], (int) $date[2], (int) $date[0]) ) {
-			$errors['field'. $field->temp_id] = FrmFieldsHelper::get_error_msg($field, 'invalid');
+			$errors[ 'field' . $field->temp_id ] = FrmFieldsHelper::get_error_msg( $field, 'invalid' );
 		}
 	}
 

@@ -72,7 +72,7 @@ class FrmEntryMeta {
 		}
 
 		if ( $field->type == 'date' ) {
-			$values['meta_value'] = FrmProAppHelper::maybe_convert_to_db_date( $values['meta_value'], 'Y-m-d' );
+			$values['meta_value'] = FrmAppHelper::maybe_convert_to_db_date( $values['meta_value'], 'Y-m-d' );
 		} else if ( $field->type == 'number' && ! is_numeric( $values['meta_value'] ) ) {
 			$values['meta_value'] = (float) $values['meta_value'];
 		}
