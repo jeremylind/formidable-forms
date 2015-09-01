@@ -1240,8 +1240,8 @@ class FrmAppHelper {
 			$from_format = $frmpro_settings->date_format;
 		}
 
-		$base_struc     = preg_split("/[\/|.| |-]/", $from_format);
-		$date_str_parts = preg_split("/[\/|.| |-]/", $date_str );
+		$base_struc     = preg_split( '/[\/|.| |-]/', $from_format );
+		$date_str_parts = preg_split( '/[\/|.| |-]/', $date_str );
 
 		$date_elements = array();
 

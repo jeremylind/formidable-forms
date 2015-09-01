@@ -195,7 +195,6 @@ do_action('frm_field_input_html', $field);
 
 		FrmProFieldsHelper::set_field_js( $field, ( isset( $entry_id ) ? $entry_id : 0 ) );
 	}
-
 } else if ( $field['type'] == 'time' ) {
 
 	if ( $field['unique'] ) {

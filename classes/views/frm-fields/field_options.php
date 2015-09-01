@@ -179,7 +179,7 @@ if ( $display['options'] ) { ?>
 						<textarea name="field_options[description_<?php echo esc_attr( $field['id'] ) ?>]" class="long-text" rows="8"><?php
 							if ( FrmField::is_option_true( $field, 'stop_filter' ) ) {
 								echo $field['description'];
-							} else{
+							} else {
 								echo FrmAppHelper::esc_textarea( $field['description'] );
 							}
 							?></textarea>

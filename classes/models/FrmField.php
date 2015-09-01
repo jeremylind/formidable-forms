@@ -701,7 +701,7 @@ class FrmField {
 		}
 		$format = ( $values['clock'] == 24 ) ? 'H:i' : 'h:i A';
 
-		$options = array( '');
+		$options = array( '' );
 		while ( $time <= $end_time ) {
 			$options[] = date( $format, $time );
 			$time += $step;
@@ -735,16 +735,17 @@ class FrmField {
 		$options['H'] = range( $start[0], $end[0], $hour_step );
 		foreach ( $options['H'] as $k => $h ) {
 			if ( ! $show24Hours && $h > 12 ) {
-				$options['H'][$k] = $h - 12;
+				$options['H'][ $k ] = $h - 12;
 			}
 
-			if ( ! $options['H'][ $k ]){
+			if ( ! $options['H'][ $k ] ) {
 				unset( $options['H'][ $k ] ); //remove 0
 				continue;
 			}
 
-			if($options['H'][$k] < 10)
-				$options['H'][$k] = '0'. $options['H'][ $k ];
+			if ( $options['H'][ $k ] < 10 ) {
+				$options['H'][ $k ] = '0' . $options['H'][ $k ];
+			}
 
 			unset( $k, $h );
 		}
@@ -754,7 +755,7 @@ class FrmField {
 		array_unshift( $options['H'], '' );
 
 		if ( $step > 60 ) {
-			if ( $step %60 == 0 ) {
+			if ( $step % 60 == 0 ) {
 				//the step is an even hour
 				$step = 60;
 			} else {
@@ -766,7 +767,7 @@ class FrmField {
 		$options['m'] = range( $start[1], 59, $step );
 		foreach ( $options['m'] as $k => $m ) {
 			if ( $m < 10 ) {
-				$options['m'][$k] = '0'. $m;
+				$options['m'][ $k ] = '0' . $m;
 			}
 			unset( $k, $m );
 		}

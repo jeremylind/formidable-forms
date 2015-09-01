@@ -128,9 +128,9 @@ class FrmFieldsHelper {
 
 		$type_defaults = array(
 			'number' => array( 'maxnum' => 9999999, 'step' => '.01', 'minnum' => 0 ),
-			'date' => array( 'max'   => '10', 'start_year' => 2000, 'end_year' => 2020, 'locale' => '' ),
-			'time' => array( 'step'  => 30, 'clock' => 12, 'start_time' => '00:00', 'end_time' => '23:30', ),
-			'phone' => array( 'size'  => '115px' ),
+			'date'   => array( 'max' => '10', 'start_year' => 2000, 'end_year' => 2020, 'locale' => '' ),
+			'time'   => array( 'step' => 30, 'clock' => 12, 'start_time' => '00:00', 'end_time' => '23:30' ),
+			'phone'  => array( 'size' => '115px' ),
 			'textarea' => array( 'max' => 5 ),
 		);
 
