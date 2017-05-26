@@ -384,11 +384,20 @@ class FrmEntry {
 
 		//TODO Laura only check is_array?
 		if ( $entry->metas && is_array( $entry->metas ) ) {
-			$entry->metas = array_map( 'htmlspecialchars_decode', $entry->metas );
+
+			$entry->metas = array_map( 'self::htmlspecialchars_decode_deep', $entry->metas );
 		}
 
 		return $entry;
 	}
+
+	public static function htmlspecialchars_decode_deep($value){
+
+		if (is_array($value)){
+			return array_map('htmlspecialchars_decode', $value);
+		}
+		return htmlspecialchars_decode($value);
+}
 
 	/**
 	 * Stripslashes from and decodes entry from HTML special chars
