@@ -274,18 +274,24 @@ class FrmEntry {
 
         if ( ! $meta ) {
 			$entry = FrmAppHelper::check_cache( $id . '_nometa', 'frm_entry', $query, 'get_row' );
-            return stripslashes_deep($entry);
+			//TODO Laura test
+            //return stripslashes_deep($entry);
+	        return self::convert_entry_to_text($entry);
         }
 
         $entry = FrmAppHelper::check_cache( $id, 'frm_entry' );
         if ( $entry !== false ) {
-            return stripslashes_deep($entry);
+        	//TODO Laura test
+            //return stripslashes_deep($entry);
+	        return self::convert_entry_to_text($entry);
         }
 
         $entry = $wpdb->get_row( $query );
         $entry = self::get_meta($entry);
 
-        return stripslashes_deep($entry);
+		//TODO Laura test
+        //return stripslashes_deep($entry);
+		return self::convert_entry_to_text($entry);
     }
 
 	public static function get_meta( $entry ) {
@@ -346,6 +352,57 @@ class FrmEntry {
         return $exists;
     }
 
+
+	/*
+	 * Removes slashes and decodes HTML special chars to normal text in entries
+	 *
+	 * @param $entries array of entries
+	 *
+	 * @return array of entries
+	*/
+	public static function decode_entries( $entries ) {
+
+		$entries         = stripslashes_deep( $entries );
+		$decoded_entries = array_map( 'self::decode_entry', $entries );
+
+		return $decoded_entries;
+	}
+
+
+	/**
+	 * Decodes HTML special chars in entry metas of an entry
+	 *
+	 * @param $entry
+	 *
+	 * @return $entry with decoded metas
+	 */
+	public static function decode_entry( $entry ) {
+
+		if ($entry->name){
+			$entry->name = htmlspecialchars_decode($entry->name);
+		}
+
+		//TODO Laura only check is_array?
+		if ( $entry->metas && is_array( $entry->metas ) ) {
+			$entry->metas = array_map( 'htmlspecialchars_decode', $entry->metas );
+		}
+
+		return $entry;
+	}
+
+	/**
+	 * Stripslashes from and decodes entry from HTML special chars
+	 *
+	 * @param $entry
+	 *
+	 * @return $entry with decoded metas
+	 */
+	public static function convert_entry_to_text( $entry ) {
+
+		$entry = stripslashes_deep( $entry );
+		return self::decode_entry($entry);
+	}
+
     public static function getAll( $where, $order_by = '', $limit = '', $meta = false, $inc_form = true ) {
 		global $wpdb;
 
@@ -380,7 +437,7 @@ class FrmEntry {
         }
 
         if ( ! $meta || ! $entries ) {
-            return stripslashes_deep($entries);
+	        return self::decode_entries($entries);
         }
         unset($meta);
 
@@ -399,8 +456,11 @@ class FrmEntry {
 
         unset( $meta_where );
 
+		//TODO Laura -- find a way to test this
+	    //TODO Laura -- see if this is needed
         if ( ! $metas ) {
-            return stripslashes_deep($entries);
+            //return stripslashes_deep($entries);
+	        return self::decode_entries($entries);
         }
 
         foreach ( $metas as $m_key => $meta_val ) {
@@ -424,7 +484,7 @@ class FrmEntry {
 			}
 		}
 
-        return stripslashes_deep($entries);
+	    return self::decode_entries($entries);
     }
 
     // Pagination Methods
