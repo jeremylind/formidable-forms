@@ -161,7 +161,7 @@ class FrmEntryMeta {
 
 		if ( $cached && isset( $cached->metas ) && isset( $cached->metas[ $field_id ] ) ) {
 			$result = $cached->metas[ $field_id ];
-            return stripslashes_deep($result);
+			return FrmEntry::make_text_human_readable($result);
         }
 
 		$get_table = $wpdb->prefix . 'frm_item_metas';
@@ -175,7 +175,7 @@ class FrmEntryMeta {
 
 		$result = FrmDb::get_var( $get_table, $query, 'meta_value' );
         $result = maybe_unserialize($result);
-        $result = stripslashes_deep($result);
+		$result = FrmEntry::make_text_human_readable($result);
 
         return $result;
     }
@@ -200,7 +200,7 @@ class FrmEntryMeta {
             unset($k, $v);
         }
 
-        return stripslashes_deep($values);
+	    return FrmEntry::make_text_human_readable($values);
     }
 
     /**
@@ -252,6 +252,7 @@ class FrmEntryMeta {
         }
 
         foreach ( $results as $k => $result ) {
+        	//TODO -- does this need htmlspecialchars_decode?
 			$results[ $k ]->meta_value = stripslashes_deep( maybe_unserialize( $result->meta_value ) );
             unset($k, $result);
         }

@@ -274,24 +274,18 @@ class FrmEntry {
 
         if ( ! $meta ) {
 			$entry = FrmAppHelper::check_cache( $id . '_nometa', 'frm_entry', $query, 'get_row' );
-			//TODO Laura test
-            //return stripslashes_deep($entry);
-	        return self::convert_entry_to_text($entry);
+	        return self::make_text_human_readable($entry);
         }
 
         $entry = FrmAppHelper::check_cache( $id, 'frm_entry' );
         if ( $entry !== false ) {
-        	//TODO Laura test
-            //return stripslashes_deep($entry);
-	        return self::convert_entry_to_text($entry);
+	        return self::make_text_human_readable($entry);
         }
 
         $entry = $wpdb->get_row( $query );
         $entry = self::get_meta($entry);
 
-		//TODO Laura test
-        //return stripslashes_deep($entry);
-		return self::convert_entry_to_text($entry);
+		return self::make_text_human_readable($entry);
     }
 
 	public static function get_meta( $entry ) {
@@ -354,62 +348,42 @@ class FrmEntry {
 
 
 	/*
-	 * Removes slashes and decodes HTML special chars to normal text in entries
+	 * Removes slashes and decodes HTML special chars to normal text
 	 *
-	 * @param $entries array of entries
+	 * @param mixed $value
 	 *
-	 * @return array of entries
+	 * @return  mixed $value
 	*/
-	public static function decode_entries( $entries ) {
+	public static function make_text_human_readable( $value ) {
 
-		$entries         = stripslashes_deep( $entries );
-		$decoded_entries = array_map( 'self::decode_entry', $entries );
+		$value = stripslashes_deep( $value );
+		$value = self::htmlspecialchars_decode_deep( $value );
 
-		return $decoded_entries;
+		return $value;
 	}
 
-
 	/**
-	 * Decodes HTML special chars in entry metas of an entry
+	 * Navigates through an array, object, or scalar, and decodes HTML special chars from the values.
 	 *
-	 * @param $entry
+	 * modeled on stripslashes_deep from WP Core
 	 *
-	 * @return $entry with decoded metas
+	 * @param mixed $value The value to be decoded.
+	 * @return mixed decoded value.
 	 */
-	public static function decode_entry( $entry ) {
-
-		if ($entry->name){
-			$entry->name = htmlspecialchars_decode($entry->name);
-		}
-
-		//TODO Laura only check is_array?
-		if ( $entry->metas && is_array( $entry->metas ) ) {
-
-			$entry->metas = array_map( 'self::htmlspecialchars_decode_deep', $entry->metas );
-		}
-
-		return $entry;
+	function htmlspecialchars_decode_deep( $value ) {
+		return map_deep( $value, 'FrmEntry::htmlspecialchars_decode_from_strings_only' );
 	}
 
-	public static function htmlspecialchars_decode_deep($value){
-
-		if (is_array($value)){
-			return array_map('htmlspecialchars_decode', $value);
-		}
-		return htmlspecialchars_decode($value);
-}
-
 	/**
-	 * Stripslashes from and decodes entry from HTML special chars
+	 * Callback function for `htmlspecialchars_decode_deep()` which decodes HTML special chars from strings.
 	 *
-	 * @param $entry
+	 * modeled on stripslashes_from_strings_only from WP Core
 	 *
-	 * @return $entry with decoded metas
+	 * @param mixed $value The array or string to be stripped.
+	 * @return mixed $value The stripped value.
 	 */
-	public static function convert_entry_to_text( $entry ) {
-
-		$entry = stripslashes_deep( $entry );
-		return self::decode_entry($entry);
+	function htmlspecialchars_decode_from_strings_only( $value ) {
+		return is_string( $value ) ? htmlspecialchars_decode( $value ) : $value;
 	}
 
     public static function getAll( $where, $order_by = '', $limit = '', $meta = false, $inc_form = true ) {
@@ -446,7 +420,7 @@ class FrmEntry {
         }
 
         if ( ! $meta || ! $entries ) {
-	        return self::decode_entries($entries);
+	        return self::make_text_human_readable($entries);
         }
         unset($meta);
 
@@ -463,13 +437,10 @@ class FrmEntry {
 
         $metas = FrmDb::get_results( $wpdb->prefix . 'frm_item_metas it LEFT OUTER JOIN ' . $wpdb->prefix . 'frm_fields fi ON (it.field_id = fi.id)', $meta_where, 'item_id, meta_value, field_id, field_key, form_id' );
 
-        unset( $meta_where );
+	    unset( $meta_where );
 
-		//TODO Laura -- find a way to test this
-	    //TODO Laura -- see if this is needed
-        if ( ! $metas ) {
-            //return stripslashes_deep($entries);
-	        return self::decode_entries($entries);
+	    if ( ! $metas ) {
+		    return self::make_text_human_readable( $entries );
         }
 
         foreach ( $metas as $m_key => $meta_val ) {
@@ -493,7 +464,7 @@ class FrmEntry {
 			}
 		}
 
-	    return self::decode_entries($entries);
+	    return self::make_text_human_readable($entries);
     }
 
     // Pagination Methods
